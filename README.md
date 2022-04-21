@@ -1,2 +1,2 @@
-# book-notes
-Schobzax's Book Notes - Resúmenes de libros de programación para fortalecer mi aprendizaje.
+# Schobzax's Book Notes
+Resúmenes de libros de programación para fortalecer mi aprendizaje.
