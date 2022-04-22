@@ -118,6 +118,7 @@ Especificaciones de lo instalado:
 Lo primero que hay que hacer es [instalar Java](https://www.oracle.com/java/technologies/downloads/#java8-windows) e [instalar Python](https://www.python.org/downloads/).
 
 * Especialmente en el caso de Java, hay que **prestar mucha atención al directorio de instalación**, pues será importante más adelante para configurar las variables de entorno necesarias. Mi preferencia ha sido instalarlo en `C:\Java\<java-ver>`, pero cualquier otra carpeta es igualmente válida.
+* En Python es posible que al instalarlo aparezca la Tienda de Windows. Es preferible instalarla desde ahí si ocurriera para que el sistema reconozca la instalación más agilmente.
 
 #### Descarga de archivos
 Los archivos disponibles en la carpeta donde está ubicado este archivo son dos (`hadoop-3.3.1.zip` y `Spark.zip`).
@@ -147,6 +148,10 @@ Finalmente para comprobar que funciona basta con irse a la consola más cercana 
 Asumiendo que no me falte nada, con esto ya estarían funcionando Spark y PySpark en local en Windows 10 en consola. (El acceso mediante `localhost:4040` también debería funcionar)
 
 En cualquier caso, si hubiera algún fallo, no duden en contactar conmigo como buenamente se pueda para ver si es que me ha faltado algo que es muy probable.
+
+---
+
+### Uso de la Shell
 
 ---
 
