@@ -153,6 +153,237 @@ En cualquier caso, si hubiera algún fallo, no duden en contactar conmigo como b
 
 ### Uso de la Shell
 
+Hay una shell para cada servicio: `spark-shell`, `pyspark`, `spark-sql` y `sparkR`. Todas tienen soporte para conexiones al cluster y carga distribuida de los datos a los workers.
+
+Dado que nosotros hemos instalado Spark en nuestra máquina local, Spark se ejecutará en modo local (ver la tabla anterior: todo se ejecuta en el mismo JVM).
+
+### Conceptos
+
+* **Application**: Programa construido en Spark mediante APIs. Consiste de un driver y executors. Puede estar formada de uno o más **Jobs**.
+* **SparkSession**: Objeto creado por el driver (automáticamente en una shell interactiva, creada por el usuario en una aplicación). Es lo que permite usar las APIs.
+* **Job**: Computación paralela compuesta de varias **Tasks**. Se crea en respuesta a una **acción** Spark. Cada Job se transforma en un **DAG**, siendo esto el plan de ejecución. Cada nodo en un DAG puede ser uno o más **Stages**.
+* **Stage**: Conjuntos menores de tareas dentro de un Job, que dependen entre sí. Se crean según si las operaciones pueden hacerse en serie o en paralelo. Compuesta de **Tasks**.
+* **Task**: Federadas por cada ejecutor, cada task mapea a un único núcleo y trabaja en una única partición.
+
+#### Transformaciones y Acciones
+* **Transformaciones**: Transforman un DataFrame en otro sin alterar los datos originales (inmutabilidad). Devuelven los resultados transformados de la operación realizada en un nuevo DataFrame. Se evalúan *lazily*, esto quiere decir que se van guardando en un *lineage* y más tarde en la ejecución, Spark puede reordenar estas transformaciones, juntarlas, u **optimizarlas** en general.
+* **Acciones**: Enciende la evaluación *lazy*, así que todas las transformaciones se ejecutan, y después se ejecuta la acción.
+
+Cada cosa tiene su utilidad: *lineage* e *inmutabilidad* dan tolerancia a fallos, mientras que la cadena de transformaciones da una mejor optimización.
+
+#### Transformaciones Narrow y Wide
+Las transformaciones pueden clasificarse según tengan *dependencias narrow* o *dependencias wide*.
+
+Si una partición de salida se computa a partir de una sola partición de entrada, es **narrow**.
+
+Si una partición de salida requiere la lectura de más de una partición, es **wide**.
+
+### SparkUI
+Spark incluye una interfaz web en el puerto 4040 (por defecto) donde ver métricas y estadísticas de las tasks ejecutándose, el uso de memoria, información sobre el entorno, los executors, las consultas, etc. En modo local se accede mediante `http://localhost:4040`. También tiene herramientas para la visualización del DAG.
+
+### Ejemplo práctico: Conteo de M&Ms
+
+Vamos a observar un ejemplo práctico de uso de lo aprendido hasta ahora.
+
+Se nos da un archivo de gran calibre y la estructura de dicho archivo. Tenemos que computar agregar por un valor numérico y agrupar por el resto de valores no numéricos.
+
+El programa completo está disponible en el libro. Aquí vamos a intentar mostrar un par de instrucciones de interés.
+
+1. Lo primero, los imports:
+```
+import sys
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import count
+```
+Cargan las partes importantes que vamos a necesitar para este script.
+
+2. Antes de empezar, una comprobación:
+```
+if __name__ == "__main__":
+  if len(sys.argv) != 2:
+    print("Usage: mnmcount <file>", file=sys.stderr)
+    sys.exit(-1)
+```
+Si el método que estamos ejecutando es el principal, todo lo que pongamos a continuación se ejecutará.
+
+Dentro de eso, tenemos que comprobar que el programa conste de dos argumentos (el nombre del programa y el archivo a leer), porque si no no funcionará. Para ello, si no consta de dos argumentos, imprimimos por la salida estándar de errores cómo se usa, y salimos del programa.
+
+3. Ahora creamos la `SparkSession`.
+```
+  spark = (SparkSession
+    .builder
+    .appName("PythonMnmCount")
+    .getOrCreate())
+```
+Como se ha dicho anteriormente, si estamos creando una aplicación (como es el caso) no se nos dará una `SparkSession` por defecto, sino que tendremos que crearla nosotros mismos, que es lo que estamos haciendo en el código anterior, dotándole del nombre de aplicación "PythonMnmCount", y asignándolo a la variable de nombre spark (por costumbre).
+
+4. Leemos el nombre del archivo y luego leemos el archivo en sí mismo en formato csv.
+```
+  mnm_file = sys.argv[1] # Nos da el nombre de archivo.
+  mnm_df = (spark.read.format("csv") # El formato del archivo es csv.
+    .option("header","true") # Este CSV tiene header.
+    .option("inferSchema","true") # Que deduzca la estructura.
+    .load(mnm_file)) # Cargamos el archivo.
+```
+*Nota: Los tres campos son "State" (Estado, cadena), "Color" (ídem, cadena) y "Count" (conteo, int)*
+
+5. Ahora que tenemos el archivo cargado, ejecutamos las operaciones necesarias para agrupar el *Count* por *State* y por *Color*:
+```
+  count_mnm_df = (mnm_df
+    .select("State","Color","Count")
+    .groupBy("State","Color")
+    .agg(count("Count").alias("Total"))
+    .orderBy("Total", ascending=False))
+```
+
+6. Por último, ejecutamos una acción que cargará todas esas transformaciones:
+```
+  count_mnm_df.show(n=60, truncate=False)
+  print("Total Rows = %d" % (count_mnm_df.count()))
+```
+
+7. Terminamos la ejecución con `spark.stop()`.
+
+#### Ejecución del ejemplo
+1. Guardamos el script python generado
+2. Descargamos el archivo .csv [disponible en el repositorio de github](https://github.com/databricks/LearningSparkV2/blob/master/chapter2/py/src/data/mnm_dataset.csv) y lo guardamos en la misma carpeta que el script python. [^1]
+3. Nos dirigimos a la consola más cercana y situándonos en la carpeta donde hayamos guardado ambos archivos, ejecutamos el siguiente comando:
+```
+> spark-submit <nombrArchivoPython>.py mnm_dataset.csv
+```
+El resultado será algo como esto:
+```
++-----+------+-----+
+|State|Color |Total|
++-----+------+-----+
+|CA   |Yellow|1807 |
+|WA   |Green |1779 |
+|OR   |Orange|1743 |
+|TX   |Green |1737 |
+|TX   |Red   |1725 |
+[...]
+|WY   |Orange|1595 |
+|UT   |Green |1591 |
+|WY   |Brown |1532 |
++-----+------+-----+
+
+Total Rows = 60
+```
+
+[^1]: Se hará así por comodidad, realmente no es necesario mientras se sepa la ruta.
+
+#### Otro ejemplo que es exactamente el mismo
+Como vemos, esto agrupa por estado y por color. Veamos cómo se filtra para ver los colores de solo un estado:
+
+Para eso tenemos que agregar la siguiente línea.
+```
+  ca_count_mnm_df = (mnm_df
+    .select("State","Color","Count")
+    .where(mnm_df.State == "CA")) <-- ESTA
+    .groupBy("State","Color")
+    .agg(count("Count").alias("Total"))
+    .orderBy("Total",ascending=False))
+```
+
+#### Breve comentario: Log4j
+Es posible que a la hora de ejecutar el script salgan un montón de líneas que comiencen por INFO. Esto se debe a la configuración de *logging* y se puede eliminar de la siguiente manera:
+
+1. Copiar el archivo `log4j.properties.template` a `log4j.properties`.
+2. En éste, cambiar `log4j.rootCategory=INFO` por `log4j.rootCategory=WARN`.
+
+De esta manera solo se mostrarán líneas de advertencia y error.
+
+#### Código en Scala
+Exactamente igual con cambios de sintaxis. Debería quedar algo así:
+```
+package main.scala.chapter2
+
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions._
+
+object MnMcount {
+  def main(args: Array[String]) {
+      val spark = SparkSession
+        .builder
+        .appName("MnMCount")
+        .getOrCreate()
+      
+      if (args.length < 1) {
+        print("Usage: MnMCount <mnm_file_dataset>")
+        sys.exit(1)
+      }
+
+      val mnmFile = args(0)
+
+      val mnmDF = spark.read.format("csv")
+        .option("header","true")
+        .option("inferSchema","true")
+        .load(mnmFile)
+
+      val countMnMDF = mnmDF
+        .select("State","Color","Count")
+        .groupBy("State","Color")
+        .agg(Count("Count").alias("Total"))
+        .orderBy(desc("Total"))
+
+      countMnMDF.show(60)
+      println("Total Rows = ${countMnMDF.count()})
+      println()
+
+      val caCountMnMDF = mnmDF
+        .select("State","Color","Count")
+        .where(col("State") === "CA")
+        .groupBy("State","Color")
+        .agg(Count("Count").alias("Total"))
+        .orderBy(desc("Total"))
+
+      caCountMnMDF.show(10)
+
+      spark.stop()
+  }
+}
+```
+
+**Sin embargo**, la diferencia entre ejecutar en Scala y en Python es muy grande y es la siguiente:
+* Python es un lenguaje interpretado: no requiere compilación (puede hacerse pero no es necesario).
+* Sin embargo, Scala sí requiere compilación. Nos centraermos en eso en el siguiente apartado.
+
+### Compilación Scala
+Necesitaremos usar el Scala Build Tool (sbt), descargable [aquí](https://www.scala-sbt.org)
+
+Hay una serie de elementos a tener en cuenta para compilar un archivo scala.
+
+1. Tenemos que crear un archivo `build.sbt` en la carpeta de creación de la aplicación, con el siguiente contenido:
+```
+name := "main/scala/chapter2" // El paquete del archivo scala que vamos a compilar.
+version := "1.0" // Versión de dicho paquete.
+scalaVersion := "2.12.10" // Versión de scala.
+libraryDependencies ++= Seq(
+    "org.apache.spark" %% "spark-core" % "3.1.2",
+    "org.apache.spark" %% "spark-sql" % "3.1.2"
+// Las dependencias necesarias, con el paquete en el que se hallan, el paquete concreto que importamos, y la versión de spark (o del paquete, más bien) que importamos.
+)
+```
+
+2. Una vez hecho esto, podemos ejecutar el siguiente comando.
+```
+> sbt clean package
+```
+Este compila el paquete señalado. Te señalará la existencia de errores en el proceso y finalmente compilará si no los hubiera.
+
+3. Por último, ejecutamos el archivo compilado así:
+```
+> spark-submit --class main.scala.chapter2.MnMcount target/scala-2.12/main-scala-chapter2_2.12-1.0.jar mnm_dataset.csv
+```
+El archivo `jar` es generado por la compilación, y puede encontrarse en `./target/scala-2.12` (o la versión que toque), junto a otras carpetas.
+
+Los argumentos son: la clase, que se saca a partir del archivo .scala (con el paquete y el objeto que se crea); la ubicación del archivo .jar generado relativo a desde donde se ejecuta `spark-submit`; y los argumentos que requiera la aplicación (en nuestro caso el archivo csv).
+
+*Mucho cuidado con las rutas*. La mayoría de problemas de ejecución o compilación en este contexto vienen dados por unas rutas incorrectamente configuradas.
+
+En resumen, la diferencia principal es que **Scala debe ser complicado**.
+
 ---
 
 ## Capítulo 3
