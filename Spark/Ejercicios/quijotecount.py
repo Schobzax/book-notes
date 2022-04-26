@@ -27,4 +27,17 @@ if __name__ == "__main__":
     quijoteDF.show(vertical=True) # Muestra la salida en formato vertical (dividido por rows)
     quijoteDF.show(5,truncate=100,vertical=True) # Muestra las 5 primeras líneas cortando a longitud 100 en formato vertical.
 
+    quijoteHead = quijoteDF.head(5) # Devuelve las primeras 5 filas como una lista de Row.
+    for linea in quijoteHead:
+        print(linea)
+    quijoteTake = quijoteDF.take(5) # Devuelve las primeras 5 filas como una lista de Row.
+    for linea in quijoteTake:
+        print(linea)
+    quijoteDF.first() # Devuelve la primera fila como una Row.
+
+    # Pero ojito, porque...
+    # quijoteDF.head() # Devuelve la primera línea como una Row.
+    # quijoteDF.take() # Da error: requiere un argumento porque devuelve siempre un Array.
+    # quijoteDF.take(1) # No da error pero eso, devuelve un array de rows de tamaño 1.
+
     spark.stop()

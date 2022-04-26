@@ -28,11 +28,20 @@ object QuijoteCount {
         val quijoteConteo = quijoteDF.count()
         println(s"Líneas: $quijoteConteo") // Imprime el número de líneas
 
-        // Distintas opcioens para show.
+        // Distintas opciones para show.
         quijoteDF.show(false) // Muestra 20 líneas (por defecto) en longitud completa.
         quijoteDF.show(10) // Muestra solo las 10 primeras líneas.
         quijoteDF.show(5,100,true) // Muestra las 5 primeras líneas cortando a longitud 100 en formato vertical.
-        // Aquí cambia: el orden ESTRICTO es nº de líneas, truncate (boolean o número de carácteres) y verticalidad. No puede especificarse.
+        // Aquí cambia respecto a Python: el orden ESTRICTO es nº de líneas, truncate (boolean o número de carácteres) y verticalidad. No puede especificarse.
+
+        val quijoteHead = quijoteDF.head(5) // Devuelve las primeras 5 filas como una lista de Row.
+        val quijoteTake = quijoteDF.take(5) // ídem.
+        val quijoteFirst = quijoteDF.first() // Devuelve la primera fila como una Row.
+
+        // Pero ojo, porque...
+        val quijoteHeadEmpty = quijoteDF.head() // Devuelve la primera línea como una Row.
+        val quijoteFirstEmpty = quijoteDF.take() // Error: Requiere un argumento porque siempre devuelve un array.
+        // val quijoteFirstEmpty = quijoteDF.take(1) // No da error, devuelve un Array de Rows de tamaño 1.
 
         spark.stop()
     }
