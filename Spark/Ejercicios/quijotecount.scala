@@ -31,8 +31,8 @@ object QuijoteCount {
         // Distintas opcioens para show.
         quijoteDF.show(false) // Muestra 20 líneas (por defecto) en longitud completa.
         quijoteDF.show(10) // Muestra solo las 10 primeras líneas.
-        quijoteDF.show(true) // Muestra la salida en formato vertical (dividido por rows)
         quijoteDF.show(5,100,true) // Muestra las 5 primeras líneas cortando a longitud 100 en formato vertical.
+        // Aquí cambia: el orden ESTRICTO es nº de líneas, truncate (boolean o número de carácteres) y verticalidad. No puede especificarse.
 
         spark.stop()
     }
