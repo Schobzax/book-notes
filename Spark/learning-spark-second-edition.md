@@ -362,6 +362,7 @@ scalaVersion := "2.12.10" // Versión de scala.
 libraryDependencies ++= Seq(
     "org.apache.spark" %% "spark-core" % "3.1.2",
     "org.apache.spark" %% "spark-sql" % "3.1.2"
+)
 // Las dependencias necesarias, con el paquete en el que se hallan, el paquete concreto que importamos, y la versión de spark (o del paquete, más bien) que importamos.
 )
 ```
@@ -389,11 +390,102 @@ En resumen, la diferencia principal es que **Scala debe ser complicado**.
 ## Capítulo 3
 *APIs Estructuradas*
 
+### RDDs
+RDD es la abstracción más básica de Spark, y la de más bajo nivel. Tienen **dependencias**, **particiones** y **funciones compute** que se computan. A partir de aquí se construyen funcionalidades de más alto nivel.
+* Las **dependencias** indican a Spark como se construye un RDD concreto, y cómo replicarlo a partir de esas dependencias.
+* Las **particiones** le dan a Spark la habilidad de paralelizar el trabajo en varios executors.
+* Las **funciones compute**  producen un Iterador `Iterator[T]` de tipo `T` para los datos en el RDD.
+
+Problemas: la función es opaca a Spark, así que Spark no sabe qué hay ahí, por lo que no puede optimizar esa operación. El tipo `T` del Iterador también es abstracto, así que no sabe si estás accediendo una columna de cierto tipo. Así que todo lo que puede hacer Spark es serializar el objeto sin usar compresión. Esto fastidia la habilidad de Spark de optimizar la computación de forma eficiente. La solución: **darle estructura**.
+
+### Estructura: Principios
+* Mediante el uso de patrones comunes de análisis de datos expresados en operaciones de alto nivel consigues claridad.
+* Usando operadores comunes de un DSL disponibles mediante las respectivas APIs consigues decirle a Spark qué quieres hacer con los datos para que Spark construya un plan de consultas eficiente.
+* Con orden y estructura en tus datos, como en una tabla SQL o una hoja de cálculo, y con tipos de datos soportados, puedes organizar mejor tus datos.
+
+Tener estructura es muy útil para la eficiencia en tiempo y espacio en los componentes Spark. Las ventajas se basan en cuatro principios: **Expresividad**, **Sencillez**, **Componibilidad** y **Uniformidad**.
+
+* **Expresividad**: Las operaciones de alto nivel le indican a Spark qué hacer en vez de cómo hacerlo. *Podemos expresar más con menos*.
+* **Sencillez**: Al usar operaciones de alto nivel, *el código resulta más fácil de leer*.
+* **Componibilidad**: Con operaciones de alto nivel, *los componentes trabajan mejor entre sí* al encargarse Spark de optimizar la ejecución.
+* **Uniformidad**: *El código en los diversos lenguajes es más uniforme* al usar operaciones de alto nivel.
+
+### DataFrames
+Se comportan como tablas distribuidas almacenadas en memoria, con columnas y *schemas* nombrados. Cada columna tiene un tipo específico. Es como una tabla. Cuando se visualizan los datos son inteligibles y fáciles de manejar.
+
+#### Tipos básicos
+Spark soporta tipos básicos internos. Todos heredan de `DataTypes` (excepto `DecimalType`).
+
+| DataType      | Scala                  | Python            | API                     |
+| --------------| ---------------------- | ----------------- | ----------------------- |
+| `ByteType`    | `Byte`                 | `int`             | `DataTypes.ByteType`    |
+| `ShortType`   | `Short`                | `int`             | `DataTypes.ShortType`   |
+| `IntegerType` | `Int`                  | `int`             | `DataTypes.IntegerType` |
+| `LongType`    | `Long`                 | `int`             | `DataTypes.LongType`    |
+| `FloatType`   | `Float`                | `float`           | `DataTypes.FloatType`   |
+| `DoubleType`  | `Double`               | `float`           | `DataTypes.DoubleType`  |
+| `StringType`  | `String`               | `str`             | `DataTypes.StringType`  |
+| `BooleanType` | `Boolean`              | `bool`            | `DataTypes.BooleanType` |
+| `DecimalType` | `java.math.BigDecimal` | `decimal.Decimal` | `DecimalType`           |
+
+#### Tipos complejos
+Igualmente, Spark soporta la declaración de tipos complejos. A veces los datos llegarán en maneras más complejas.
+
+| DataType          | Scala                         | Python                        | API                                          |
+| ----------------- | ----------------------------- | ----------------------------- | -------------------------------------------- |
+| `BinaryType`      | `Array[Byte]`                 | `bytearray`                   | `DataTypes.BinaryType`                       |
+| `TimestampType`   | `java.sql.Timestamp`          | `datetime.datetime`           | `DataTypes.TimestampType`                    |
+| `DateType`        | `java.sql.Date`               | `datetime.date`               | `DataTypes.DateType`                         |
+| `ArrayType`       | `scala.collection.Seq`        | Lista, tupla o array          | `DataTypes.createArrayTupe(ElementType)`     |
+| `MapType`         | `scala.collection.Map`        | `dict`                        | `DataTypes.createMapType(keyType,valueType)` |
+| `StructType`      | `org.apache.spark.sql.Row`    | Lista o tupla                 | `StructType(ArrayType[fieldTypes])`          |
+| `StructField`     | Valor correspondiente al tipo | Valor correspondiente al tipo | `StructField(name, dataType, [nullable])`    |
+
+También es importante más que los tipos, ver cómo encajan en un *schema*.
+
+#### Schemas
+Un ***schema*** define los nombres de las columnas y los tipos de datos asociados para un DF (importantes al leer de fuente de datos externa). Los beneficios de montar un *schema* a priori en vez de a posteriori son:
+* Spark no tiene que inferir tipos de datos.
+* Spark no tiene que crear un *Job* separado para leer una porción grande de tus datos para inferir el *schema* (mucho consumo para un archivo grande)
+* Detección de errores si los datos no coinciden con el *schema*.
+
+Los schemas se definen de la siguiente manera:
+* O bien programáticamente, (mediante funciones que crean `StructField`):
+  * Scala: `val schema = StructType(Array(StructField("<nombre>",<Type>,<nullable?>[,StructField("<nombre>",<Type>,<nullable?>),...]))`.
+  * Python: `schema = StructType([StructField("<nombre>",<Type>,<nullable?>[,StructField("<nombre>",<Type>,<nullable?>),...]])`.
+* O bien mediante una cadena DDL (más simple y fácil de leer):
+  * Scala: `val schema = "author STRING, title STRING, pages INT"`.
+  * Python: `schema = "author STRING, title STRING, pages INT"`.
+
+A veces se usarán ambos. Si usamos `<DF>.schema` se nos devolverá la estructura en lista programática.
+
+Esto también ocurre si se lee a partir de un fichero externo, como un JSON.
+
+#### Operando sobre schemas: columnas y expresiones
+* `Column` es un objeto con métodos públicos. Puede hacerse mucho con ello, como expresiones (`expr(columnName * 5)`).
+* Por otro lado, `col()` devuelve una columna concreta.
+
+Ejemplo:
+```
+> val x = (expr("columnName - 5") > col(anotherCol))
+```
+`expr` es parte de `pyspark.sql.functions` (Python) / `org.apache.spark.sql.functions` (Scala).
+
+Sobre todo sirven para realizar columnas condicionales, campos calculados, etc.
+
+[quillo de aquí palante mañana lo tienes que repasar eh](#schemas)
+
+y luego están las rows que también son muy interesantes
+
+
+---
 ## Capítulo 4
 *Spark SQL y DataFrames: Fuentes Internas de Datos*
 
+---
 ## Capítulo 5
 *SparkSQL y DataFrames: Interacción con Fuentes Externas de Datos*
 
+---
 ## Capítulo 6
 *SparkSQL y Datasets*
