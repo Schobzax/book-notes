@@ -1,4 +1,4 @@
-name := "main/scala/chapter2/extra/mnm" // El paquete del archivo scala que vamos a compilar.
+name := "main/scala/chapter2/extra/quijote" // El paquete del archivo scala que vamos a compilar.
 version := "1.0" // Versión de dicho paquete.
 scalaVersion := "2.12.10" // Versión de scala.
 libraryDependencies ++= Seq(
