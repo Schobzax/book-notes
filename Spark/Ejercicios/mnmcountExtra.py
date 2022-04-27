@@ -2,7 +2,7 @@
 import sys
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import count, max, min
+from pyspark.sql import functions as F
 
 if __name__ == "__main__":
     # Comprobamos el número de argumentos
@@ -28,7 +28,7 @@ if __name__ == "__main__":
     count_mnm_df = (mnm_df
         .select("State","Color","Count")
         .groupBy("State","Color")
-        .agg(count("Count").alias("Total"))
+        .agg(F.count("Count").alias("Total"))
         .orderBy("Total", ascending=False))
     
     count_mnm_df.show(n=60, truncate=False)
@@ -41,7 +41,7 @@ if __name__ == "__main__":
         .select("State","Color","Count")
         .where(mnm_df.State == "CA")
         .groupBy("State","Color")
-        .agg(count("Count").alias("Total"))
+        .agg(F.count("Count").alias("Total"))
         .orderBy("Total", ascending=False))
 
     count_mnm_df.show(n=60, truncate=False)
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     count_mnm_df = (mnm_df
         .select("State","Color","Count")
         .groupBy("State","Color")
-        .agg(max("Count").alias("Max"))
+        .agg(F.max("Count").alias("Max"))
         .orderBy("Max",ascending=True))
 
     count_mnm_df.show(n=60, truncate=False)
@@ -65,11 +65,29 @@ if __name__ == "__main__":
         .select("State","Color","Count")
         .where(mnm_df.State.isin("CA","TX","NV","CO"))
         .groupBy("State","Color")
-        .agg(count("Count").alias("Total"))
+        .agg(F.count("Count").alias("Total"))
         .orderBy("Total", ascending=False))
 
     count_mnm_df.show(n=60, truncate=False)
     print("Total Rows = %d" % (count_mnm_df.count()))
+
+    # Listado de funciones agregadas.
+
+    count_mnm_df = (mnm_df
+        .select("State","Color","Count")
+        .groupBy("State","Color")
+        .agg(F.max("Count").alias("Max"),F.avg("Count").alias("Avg"),F.min("Count").alias("Min"),F.sum("Count").alias("Sum"),F.count("Count").alias("Total"))
+        .orderBy("Sum", ascending=False))
+
+    count_mnm_df.show(n=60, truncate=False)
+    print("Total Rows = %d" % (count_mnm_df.count()))
+
+    # Prueba sencilla con SQL TempView
+
+    count_mnm_df.createOrReplaceTempView("mnm_agg")
+    tempdf = spark.sql("SELECT * FROM mnm_agg WHERE State IN ('CA','OR','WA')")
+    tempdf.show(n=60, truncate=False)
+    print("Total Rows = %d" % (tempdf.count()))
 
     spark.stop()
 

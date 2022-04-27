@@ -78,6 +78,25 @@ object MnMCountExtra {
         println(s"Total Rows = ${variosCountMnMDF.count()}")
         println()
 
+        // Listado de funciones agregadas.
+
+        val aggMnMDF = mnmDF
+            .select("State","Color","Count")
+            .groupBy("State","Color")
+            .agg(max("Count").alias("Max"),avg("Count").alias("Avg"),min("Count").alias("Min"),sum("Count").alias("Sum"),count("Count").alias("Total"))
+            .orderBy(desc("Sum"))
+
+        aggMnMDF.show(60)
+        println(s"Total Rows = ${aggMnMDF.count()}")
+        println()
+
+        // Prueba sencilla con SQL TempView
+
+        aggMnMDF.createOrReplaceTempView("mnm_agg")
+        val tempdf = spark.sql("SELECT * FROM mnm_agg WHERE State IN ('CA','OR','WA')")
+        tempdf.show(60)
+        print("Total Rows = %d" % (tempdf.count()))
+
         spark.stop()
 
     // Para cada ejercicio realizamos la consulta correspondiente
