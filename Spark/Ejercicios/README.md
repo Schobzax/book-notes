@@ -11,8 +11,11 @@
 
 | Ejemplos | Python | Scala |
 | -------- | ------ | ----- |
-| **Ejemplo 1** | [Aquí](chapter3/.py) | [Allá](chapter3/.scala) |
-| **Ejemplo 2** | [Acá](chapter3/.py) | [Allí](chapter3/.scala) |
+| **Ejemplo 1** | [Aquí](chapter3/ejemplo1.py) | [Allá](chapter3/ejemplo1.scala) |
+| **Ejemplo 2** | [Acá](chapter3/ejemplo2.py) | [Allí](chapter3/ejemplo2.scala) |
+| **Ejemplo 3** | [Ici](chapter3/ejemplo3.py) | [Comme ça](chapter3/ejemplo3.scala) |
+| **Ejemplo 4** | [Cha cha](chapter3/ejemplo4.py) | [Oui oui](chapter3/ejemplo4.scala) |
+| **Ejemplo 5** | [Here](chapter3/ejemplo5.py) | [There](chapter3/ejemplo5.scala) |
 
 | Ejercicios | Python | Scala |
 | ---------- | ------ | ----- |

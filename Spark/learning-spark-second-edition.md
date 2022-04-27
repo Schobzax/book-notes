@@ -473,9 +473,7 @@ Ejemplo:
 
 Sobre todo sirven para realizar columnas condicionales, campos calculados, etc.
 
-[quillo de aquí palante mañana lo tienes que repasar eh](#schemas)
 
-y luego están las rows que también son muy interesantes
 
 
 ---
