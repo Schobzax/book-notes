@@ -14,4 +14,11 @@
 | **Ejemplo 1** | [Aquí](chapter3/.py) | [Allá](chapter3/.scala) |
 | **Ejemplo 2** | [Acá](chapter3/.py) | [Allí](chapter3/.scala) |
 
+| Ejercicios | Python | Scala |
+| ---------- | ------ | ----- |
+| **Esquema CSV** | x | x |
+| **no se qué del structField** | x | x |
+| **DataSet vs DataFrame** | n | x |
+| **Parquet o algo** | x | x |
+
 etcétera
