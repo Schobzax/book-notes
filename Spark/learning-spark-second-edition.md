@@ -410,6 +410,8 @@ Tener estructura es muy útil para la eficiencia en tiempo y espacio en los comp
 * **Componibilidad**: Con operaciones de alto nivel, *los componentes trabajan mejor entre sí* al encargarse Spark de optimizar la ejecución.
 * **Uniformidad**: *El código en los diversos lenguajes es más uniforme* al usar operaciones de alto nivel.
 
+*Ver Ejemplo1*
+
 ### DataFrames
 Se comportan como tablas distribuidas almacenadas en memoria, con columnas y *schemas* nombrados. Cada columna tiene un tipo específico. Es como una tabla. Cuando se visualizan los datos son inteligibles y fáciles de manejar.
 
@@ -459,7 +461,11 @@ Los schemas se definen de la siguiente manera:
 
 A veces se usarán ambos. Si usamos `<DF>.schema` se nos devolverá la estructura en lista programática.
 
+*Ver Ejemplo2*
+
 Esto también ocurre si se lee a partir de un fichero externo, como un JSON.
+
+*Ver Ejemplo3*
 
 #### Operando sobre schemas: columnas y expresiones
 * `Column` es un objeto con métodos públicos. Puede hacerse mucho con ello, como expresiones (`expr(columnName * 5)`).
@@ -473,8 +479,68 @@ Ejemplo:
 
 Sobre todo sirven para realizar columnas condicionales, campos calculados, etc.
 
+Entre los diversos usos de las columnas y las expresiones se hallan la concatenación, las columnas condicionales, los campos calculados, la ordenación, entre otros.
 
+*Ver Ejemplo4*
 
+#### Operando sobre schemas: Rows
+Una fila en Spark es un objeto genérico `Row` que contiene una o más columnas, que pueden ser del mismo o de distinto tipo. El acceso a los campos se hace mediante un índice.
+
+Las Row pueden usarse para crear DataFrames incluso.
+
+*Ver Ejemplo 5*
+
+Lo más habitual, sin embargo, será leer un DataFrame a partir de un archivo externo. Es más fácil definir un schema y usarlo debido al gran tamaño de muchos archivos.
+
+Una vez creado un DataFrame seguramente quieras ejecutar ciertas operaciones, que es lo que veremos a continuación.
+
+#### Operaciones comunes
+Spark provee de dos interfaces muy útiles:
+* `DataFrameReader`, para leer datos a un DataFrame a partir de fuentes (csv, json, parquet, avro, etc.)
+* `DataFrameWriter`, para escribir datos de un DataFrame a una fuente particular.
+
+Gracias a las abstracciones dadas por el alto nivel, esto es muy fácil.
+
+En el siguiente ejemplo, de datos de bomberos de San Francisco, vamos a observar y practicar lo aprendido.
+
+*Ver ejemplo 6*
+
+* `.option("samplingRatio", n)` nos permite tomar una muestra aleatoria de un DataFrame, para poder inferir un schema a partir de menos datos.
+
+**Lectura y escritura**:
+* La lectura se hace mediante `spark.read` con opciones diversas según el lenguaje usado (`csv` u otros formatos, `schema` para leer un schema, `option` para determinar opciones explícitamente)
+* La escritura se hace mediante `spark.write` con opciones para `format`, formato de guardado, y la ruta o tabla donde se guarda, con `save(ruta)` o `saveAsTable(rutaDeTabla)`.
+
+Por otro lado están las **transformaciones y acciones**, que ya hemos visto; y las proyecciones y filtros, que varían un poco:
+* Las **proyecciones** devuelven las filas que coinciden con una condición relacional usando **filtros**.
+
+*Seguir viendo ejemplo 6*
+
+También tienes la posibilidad de **renombrar, añadir y eliminar** columnas. Es importante mencionar que los DF son inmutables, así que operaciones como `withColumnRenamed()` nos devuelven un nuevo DataFrame, permaneciendo el original sin cambio alguno.
+
+Por otro lado, es posible hacer casteos también (pasar de un tipo a otro). Por ejemplo, en la siguiente parte convertimos ciertas columnas de `String` a `Timestamp`, lo cual nos da acceso a funciones como `year()`, `month()`, `day()`, etc.
+
+*Más ejemplo 6*
+
+Las **agregaciones** también funcionan exactamente igual que como hemos visto hasta ahora. A esto se añaden las **funciones agregadoras** como `sum()`, `min()`, `max()` y `avg()`.
+
+*Aún más ejemplo 6*
+
+### DataSets
+
+Por simplificarlo mucho, un DataFrame es un tipo de DataSet.
+
+Un DataFrame puede considerarse un alias para una colección de objetos genéricos `DataSet[Row]`.
+
+Por otro lado, un DataSet puede considerarse una colección de objetos tipados.
+
+Mira yo qué sé, está en un inglés muy técnico y al final es todo teoría, así que vamos a pasar a otra cosa.
+
+Los Datasets solo tienen sentido en Java y Scala, pero no en Python o R, donde solo tienen sentido los DataFrames. Esto es debido a que Python y R infieren/asignan los tipos en tiempo de ejecución; no son lenguajes que se compilen; mientras que Java y Scala hay que compilarlos y por tanto tipan sus variables antes de ejecutarse.
+
+Los accesos a Row y a otras cuestiones pueden verse en el siguiente ejemplo.
+
+*Ejemplo 7*
 
 ---
 ## Capítulo 4
