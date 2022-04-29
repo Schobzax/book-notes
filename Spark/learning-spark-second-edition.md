@@ -540,7 +540,42 @@ Los Datasets solo tienen sentido en Java y Scala, pero no en Python o R, donde s
 
 Los accesos a Row y a otras cuestiones pueden verse en el siguiente ejemplo.
 
-*Ejemplo 7*
+*Ver Ejemplo 7*
+
+Las **operaciones con Datasets** se mostrarán en el siguiente ejemplo, exclusivo de Scala por los motivos que hemos explicado. Entre otras cosas, pueden verse filtrados, e incluso filtrados con mapeado que resultan en un DataSet más pequeño.
+
+*Ver Ejemplo 8*
+
+### DataFrames vs DataSets
+
+* Son la opción recomendada si quieres decirle a Spark **qué hacer**, no cómo hacerlo.
+
+* Seguridad a tiempo de compilación: **Datasets**.
+* Transformaciones relacionales parecidas a consultas SQL: **DataFrames**.
+* Si quieres unificación, optimización y simplificación de APIs, y eficiencia en tiempo y espacio: **DataFrames**.
+* Según cuando quieras que se pillen los errores usarás una u otra:
+|     | Syntax Error | Analysis Error |
+| --- | ------------ | -------------- |
+| SQL | Ejecución    | Ejecución      |
+| DF  | Compilación  | Ejecución      |
+| DS  | Compilación  | Compilación    |
+
+### Uso de RDD
+Se usarán RDDs cuando:
+* Se esté usando un paquete de terceros construido con RDD.
+* No importe la optimización de código, espacio y/o rendimiento.
+* Queremos decirle a Spark cómo hacer las cosas.
+
+### Motor SparkSQL
+**SparkSQL** usa un motor que permite unificar los componentes y conectar con metastores y tablas Hive. Lee y escribe datos estructurados y los convierte a tablas temporales, ofrece una shell interactiva, conectores JDBC/ODBC y genera planes de consulta optimizados.
+
+En su núcleo se halla el *Catalyst Optimizer* y el *Project Tungsten*.
+
+* **Catalyst Optimizer**: Convierte las consultas en planes de ejecución, en cuatro pasos:
+  1. Análisis (que puede verse añadiendo `.explain` a una operación DF): Se genera un AST (Abstract Syntax Tree) para la consulta. Los nombres se resuelven mediante un catálogo (`Catalog`) interno con una lista de nombres.
+  2. Optimización lógica: Un vez resueltos los nombres, se aplican reglas de optimización creando múltiples plalnes y asignándoles costes mediante un CBO (cost-based optimizer).
+  3. Plan físico: El plan lógico se pasa a esta parte y SparkSQL genera un plan físico óptimo usando operadores físicos disponibles en el motor de ejecución.
+  4. Generación de código: Se genera código Java eficiente para cada máquina. Aquí entra en juego *Project Tungsten*. Se colapsa toda la consulta en una sola función y de esta manera se mejora el rendimiento.
 
 ---
 ## Capítulo 4

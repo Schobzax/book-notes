@@ -128,7 +128,7 @@ object ejemplo {
         // Distintos tipos de llamadas para el año 2018
 
         fireTsDF
-            .filter(year("IncidentDate") === 2018)
+            .filter(year($"IncidentDate") === 2018)
             .select(col("CallType"))
             .distinct().show()
 
@@ -180,11 +180,11 @@ object ejemplo {
 
         // Parquet
         fireTsDF.write.format("parquet").mode("overwrite").save("/tmp/fireServiceParquet/")
-        fileParquetDF = spark.read.format("parquet").load("/tmp/fireServiceParquet/")
+        val fileParquetDF = spark.read.format("parquet").load("/tmp/fireServiceParquet/")
         
         // SQL
         fireTsDF.write.format("parquet").mode("overwrite").saveAsTable("FireServiceCalls")
-        fileSqlDF = spark.read.load("FireServiceParquet")
+        val fileSqlDF = spark.read.load("FireServiceParquet")
 
     }
 }

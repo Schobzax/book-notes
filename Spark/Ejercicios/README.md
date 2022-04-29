@@ -16,6 +16,9 @@
 | **Ejemplo 3** | [Ici](chapter3/ejemplo3.py) | [Comme ça](chapter3/ejemplo3.scala) |
 | **Ejemplo 4** | [Cha cha](chapter3/ejemplo4.py) | [Oui oui](chapter3/ejemplo4.scala) |
 | **Ejemplo 5** | [Here](chapter3/ejemplo5.py) | [There](chapter3/ejemplo5.scala) |
+| **Ejemplo 6** | [Near](chapter3/ejemplo6.py) | [Far](chapter3/ejemplo6.scala) |
+| **Ejemplo 7** | [Up](chapter3/ejemplo7.py) | [Down](chapter3/ejemplo7.scala) |
+| **Ejemplo 8** | Nope (Datasets) | [Aquí sí](chapter3/ejemplo8.scala) |
 
 | Ejercicios | Python | Scala |
 | ---------- | ------ | ----- |
