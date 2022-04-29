@@ -1,4 +1,4 @@
-package main.scala.chapter3.ejemplo7
+package main.scala.chapter3.ejemplo8
 
 import org.apache.spark.sql.Row
 

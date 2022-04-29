@@ -22,9 +22,7 @@
 
 | Ejercicios | Python | Scala |
 | ---------- | ------ | ----- |
-| **Esquema CSV** | x | x |
-| **no se qué del structField** | x | x |
-| **DataSet vs DataFrame** | n | x |
-| **Parquet o algo** | x | x |
-
-etcétera
+| **Esquema CSV** | [Este](chapter3/esquemacsv.py) | [Este otro](chapter3/esquemacsv.scala) |
+| **no se qué del structField** | [En un documento aparte.](chapter3/preguntas.md#StructField)
+| **DataSet vs DataFrame** | [En un documento aparte.](chapter3/preguntas.md#DataSet_vs_DataFrame) |
+| **Parquet o algo** | [Uno](chapter3/esquemacsv.py) | [Otro](chapter3/esquemacsv.scala) |
