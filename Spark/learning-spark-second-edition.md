@@ -581,6 +581,11 @@ En su núcleo se halla el *Catalyst Optimizer* y el *Project Tungsten*.
 ## Capítulo 4
 *Spark SQL y DataFrames: Fuentes Internas de Datos*
 
+### Uso de SparkSQL
+SparkSQL habilita el uso del método `sql()` para realizar consultas SQL sobre tablas y vistas temporales.
+
+*Ver Ejemplo 1*
+
 ---
 ## Capítulo 5
 *SparkSQL y DataFrames: Interacción con Fuentes Externas de Datos*

@@ -26,3 +26,11 @@
 | **no se qué del structField** | [En un documento aparte.](chapter3/preguntas.md#StructField)
 | **DataSet vs DataFrame** | [En un documento aparte.](chapter3/preguntas.md#DataSet_vs_DataFrame) |
 | **Parquet o algo** | [Uno](chapter3/esquemacsv.py) | [Otro](chapter3/esquemacsv.scala) |
+
+## Capítulo 4
+
+| Ejemplos      | Python | Scala |
+| ------------- | ------ | ----- |
+| **Ejemplo 1** | [Aquí](chapter4/ejemplo1.py) | [Allí](chapter4/ejemplo1.scala) |
+| **Ejemplo 2** | [Aquí](chapter4/ejemplo2.py) | [Allí](chapter4/ejemplo2.scala) |
+| **Ejemplo 3** | [Aquí](chapter4/ejemplo3.py) | [Allí](chapter4/ejemplo3.scala) |
