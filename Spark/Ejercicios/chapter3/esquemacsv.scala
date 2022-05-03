@@ -11,8 +11,8 @@ object ejercicio {
 
         // Ahora vamos a proceder al guardado en distintos formatos
 
-        mnm_df.write.format("json").mode("overwrite").save("new-mnm-dataset.json")
-    mnm_df.write.format("csv").mode("overwrite").save("new-mnm-dataset.csv")
-    mnm_df.write.format("avro").mode("overwrite").save("new-mnm-dataset.avro")
+        mnmDF.write.format("json").mode("overwrite").save("new-mnm-dataset.json")
+        mnmDF.write.format("csv").mode("overwrite").save("new-mnm-dataset.csv")
+        mnmDF.write.format("avro").mode("overwrite").save("new-mnm-dataset.avro")
     }
 }

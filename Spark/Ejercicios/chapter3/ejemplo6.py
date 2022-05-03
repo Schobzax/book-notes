@@ -185,4 +185,4 @@ if __name__ == "__main__":
     
     # SQL
     fire_ts_df.write.format("parquet").mode("overwrite").saveAsTable("FireServiceCalls")
-    file_sql_df = spark.read.load("FireServiceParquet")
+    #file_sql_df = spark.read.load("FireServiceParquet") --No es así, se accede directamente al SQL

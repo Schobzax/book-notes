@@ -10,4 +10,3 @@ El último parámetro Boolean determina si el campo es `Nullable`, es decir, si 
 
 * Un **DataFrame** no es tipado; un **DataSet** sí.
 * Un **DataSet** da errores de compilación. Un **DataFrame** solo los da en ejecución.
-* Y bueno seguramente haya más cosas pero sabe usted que a mí esto no se me da bien.

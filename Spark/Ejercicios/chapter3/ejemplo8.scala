@@ -81,6 +81,5 @@ object ejemplo {
             .groupBy($"cn")
             .avg()
             .sort($"avg(temp)".desc, $"avg(humidity)".desc).show(10, false)
-
     }
 }

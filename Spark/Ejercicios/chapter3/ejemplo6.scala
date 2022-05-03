@@ -166,6 +166,13 @@ object ejemplo {
 
         // Which week in the year in 2018 had the most fire calls?
         // Semana del año con más llamadas
+        fireTsDF
+            .filter(year($"IncidentDate") === 2018)
+            .withColumn("Semana", weekofyear($"IncidentDate"))
+            .distinct()
+            .groupBy("Semana")
+            .agg(count("*").alias("Count"))
+            .orderBy("Semana")
 
         // Is there a correlation between neighborhood, zip code, and number of fire calls?
         // Correlación entre barrio, código postal, y número de llamadas
@@ -173,7 +180,6 @@ object ejemplo {
         // Respuesta:
         // A ver. Evidentemente entre barrio y código postal hay. Entre eso y el número de llamadas... Pues no parece.
         // Evidentemente si en un barrio hay más número de llamadas, en un código postal también.
-
 
         // How can we use Parquet files or SQL tables to store this data and read it back?
         // Guardar en archivo Parquet o tabla SQL y leerlo de vuelta
@@ -184,7 +190,7 @@ object ejemplo {
         
         // SQL
         fireTsDF.write.format("parquet").mode("overwrite").saveAsTable("FireServiceCalls")
-        val fileSqlDF = spark.read.load("FireServiceParquet")
+        //val fileSqlDF = spark.read.load("FireServiceParquet") --No es así, se accede directamente al SQL
 
     }
 }
