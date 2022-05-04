@@ -34,3 +34,16 @@
 | **Ejemplo 1** | [Aquí](chapter4/ejemplo1.py) | [Allí](chapter4/ejemplo1.scala) |
 | **Ejemplo 2** | [Aquí](chapter4/ejemplo2.py) | [Allí](chapter4/ejemplo2.scala) |
 | **Ejemplo 3** | [Aquí](chapter4/ejemplo3.py) | [Allí](chapter4/ejemplo3.scala) |
+| **Ejemplo 4** | [Aquí](chapter4/ejemplo4.py) | [Allí](chapter4/ejemplo4.scala) |
+| **Ejemplo 5: Parquet** | [Aquí](chapter4/ejemplo5.py) | [Allí](chapter4/ejemplo5.scala) |
+| **Ejemplo 6: JSON** | [Aquí](chapter4/ejemplo6.py) | [Allí](chapter4/ejemplo6.scala) |
+| **Ejemplo 7: CSV** | [Aquí](chapter4/ejemplo7.py) | [Allí](chapter4/ejemplo7.scala) |
+| **Ejemplo 8: Avro** | [Aquí](chapter4/ejemplo8.py) | [Allí](chapter4/ejemplo8.scala) |
+| **Ejemplo 9: ORC** | [Aquí](chapter4/ejemplo9.py) | [Allí](chapter4/ejemplo9.scala) |
+| **Ejemplo 10: Imágenes** | [Aquí](chapter4/ejemplo10.py) | [Allí](chapter4/ejemplo10.scala) |
+| **Ejemplo 11: Archivos binarios** | [Aquí](chapter4/ejemplo11.py) | [Allí](chapter4/ejemplo11.scala) |
+
+| Ejercicios | Python | Scala |
+| ---------- | ------ | ----- |
+| **GlobalTempView vs TempView** | [Explicación](chapter4/global.md) |
+| **Leer archivos cap3** | [Uno](chapter4/lectura.py) | [Dos](chapter4/lectura.scala) |

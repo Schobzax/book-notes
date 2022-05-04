@@ -584,11 +584,137 @@ En su núcleo se halla el *Catalyst Optimizer* y el *Project Tungsten*.
 ### Uso de SparkSQL
 SparkSQL habilita el uso del método `sql()` para realizar consultas SQL sobre tablas y vistas temporales.
 
-*Ver Ejemplo 1*
+*Ver Ejemplos 1 y 2*
+
+Hacerlo mediante un comando SQL y mediante la API de DataFrames es exactamente igual en términos de eficiencia. Spark maneja todas las complejidades de forma transparente al uuario.
+
+#### ***Gestión de tablas y vistas***
+Por defecto, Spark usa la metastore de Apache Hive para persistir los metadatos (schema, descripción, nombre de tabla, nombre de DB, columnas, particiones, localización física, etc) de las tablas.
+
+Con Spark pueden crearse dos tipos de tablas: ***Managed*** y ***Unmanaged***.
+* Para una tabla *Managed*, Spark gestiona los metadatos y los datos en un sistema local, HDFS o en la nube. Si ejecutas `DROP TABLE table_name`, borras datos *y* metadatos.
+* Para una tabla *Unmanaged*, Spark solo gestiona los metadatos y los datos se gestionan en una fuente externa (i.e. Cassandra) Si ejecutas `DROP TABLE table_name`, en este caso borras solo los metadatos.
+
+##### Creación de tablas y BD
+Pueden crearse mediante comandos SQL como `CREATE DATABASE` o `CREATE TABLE`. Por defecto, las tablas se crean en la DB `default`, pero esto puede cambiarse creando una DB propia.
+
+En el siguiente ejemplo se ve el proceso de creación y uso de nuestra propia DB y tabla, de distintas maneras.
+
+*Ver Ejemplo 3*
+
+##### Vistas
+Además de tablas, pueden crearse vistas sobre las tablas, que son **temporales** (se borran al cerrar la aplicación Spark). La sintaxis es similar a la creación de una base de datos y funcionan exactamente igual que vistas SQL (pueden hacerse consultas, etc.) siendo la única diferencia es que la vista no almacena datos.
+
+Otro punto de interés es la diferencia entre vista global y vista normal: La vista global requiere un prefijo para su acceso, pero se crea para todas las `SparkSession` de un mismo cluster; mientras que la vista normal tiene de *scope* tan solo la `SparkSession` en la que se crea.
+
+*Ver Ejemplo 4*
+
+Esto último implica que se pueden crear varias `SparkSession` dentro de una misma aplicación. Esto es útil por ejemplo cuando se quiere acceder y combinar datos de dos sesiones diferentes que no comparten configuración de metastore de Hive.
+
+Los metadatos pueden verse, como se ve al final del ejemplo 4, mediante los siguientes comandos, que acceden al `Catalog` donde se guardan los metadatos:
+```
+spark.catalog.listDatabases()
+spark.catalog.listTables()
+spark.catalog.listColumns("us_delay_flights_tbl")
+```
+
+##### Funciones adicionales
+* **Cacheo**: Pueden guardarse en caché tablas para que las consultas sean más rápidas mediante (sql) `CACHE [LAZY] TABLE <tabla>`. `LAZY` significa que la tabla solo se cachea la primera vez que se use la tabla (a partir de entonces), en vez de en el momento de escribir el comando. `UNCACHE TABLE <tabla>` la quita de la caché.
+* **Guardado de Tablas en DF**: Con una tabla existente, `us_delay_flights_tbl`, pueden leerse los datos de la misma en un DataFrame: `[val] variable = spark.sql("SELECT * FROM tabla")` p `[val] variable = spark.table("<tabla>")`. Esto permite agilizar el proceso.
+
+### Lectura de fuentes de datos
+SparkSQL permite el uso de multitud de fuentes de dato, con ayuda de dos métodos fundamentales:
+
+#### ***DataFrameReader***
+Núcleo de la lectura de datos a partir de una fuente a un DataFrame. Su patrón es el siguiente: `DataFrameReader.format(args).option("key","value").schema(args).load()` (Esto ya lo hemos hecho antes, pueden revisarse ejemplos anteriores)
+  * Solo puede accederse al DataFrameReader mediante una `SparkSession` (no puede crearse una instancia de DataFrameReader). El acceso a DFR se hace de la siguiente manera: `SparkSession.read` (para datos estáticos) y `SparkSession.readStream` (para datos en streaming).
+
+Examinemos brevemente las opciones:
+* `format()` lee de `"parquet", "csv", "txt", "json", "jdbc", "orc", "avro"`, entre otras (por defecto lo que esté puesto en `spark.sql.sources.default`).
+* `option()` permite `"mode" (PERMISSIVE | FAILFAST | DROPMALFORMED), "inferSchema" (true | false), "path" (ruta)`. El modo de lectura; si se infiere el schema (para JSON y CSV exclusivamente estos dos) y la ruta del fichero a leer.
+* `schema()` permite adjuntar el schema de los datos. Adjuntar el schema suele agilizar la carga de datos.
+* `load()`: aquí hay que poner la ruta de la fuente de datos. Puede estar vacía si ya se ha especificado en la opción `path()`.
+
+Más información en la documentación.
+
+#### ***DataFrameWriter***
+Hace exactamente lo opuesto. Guarda datos a una fuente especificada. Algunas opciones:
+* `format()` indica el formato en que se guarda, con las mismas opciones que en `DataFrameReader`.
+* `option()` permite `"mode" {append/SaveMode.Append | overwrite/SaveMode.Overwrite | ignore/SaveMode.Ignore | error or errorifexists/SaveMode.ErrorIfExists}` que indica el modo de guardado, (por defecto `error` lanzando una excepción si ya existe; y el resto se explican por sí solas) y por último el `"path", <ruta>` con la ruta de donde se guarda.
+* `bucketBy()` que acepta un nº de buckets y una lista de columnas por la bucketear. (Usa el sistema Hive de bucketing)
+* `save()` guarda en la ruta especificada (vacía si se nombra en la opción `path`)
+* `saveAsTable()` lo guarda en una tabla.
+
+
+Ahora vamos a ver cómo funcionan los distintos formatos de guardado, brevemente.
+
+#### Parquet
+**Parquet** es la fuente de datos por defecto y de amplio uso en procesamiento de datos. Ofrece optimización E/S (compresión, porejemplo). Se recomienda guardar los datos en este formato.
+
+Es interesante mencionar los contenidos de un fichero Parquet:
+```
+_SUCCESS
+_committed_1799640464332036264
+_started_1799640464332036264
+part-00000-tid-1799640464332036264-91273258-d7ef-4dc7-...-c000.snappy.parquet
+```
+Seguramente haya un número de archivos `part` comprimidos (según el tamaño). Esta estructura de ficheros contiene los datos, metadatos, archivos comprimidos, y archivos de estado.
+
+* Lo único que hay que hacer para leer en formato Parquet es especificar el formato y la ruta.
+
+*Ver ejemplo 5: Parquet*
+
+#### JSON
+JavaScript Object Notation. Muy popular y legible en comparación con otros como p.ej. XML. Puede representarse en una línea y en multilínea. En una línea cada línea es un objeto JSON, mientras que en multilínea (`multiLine = true` en `option`) se lee todo como un solo objeto.
+
+*Ver ejemplo 6: JSON*
+
+Puede verse que JSON tiene más opciones disponibles, como hemos dicho antes (tanto JSON como CSV tienen opciones adicionales):
+* `compression`, recibe `none, uncompressed, bzip2, deflate, gzip, lz4, snappy` como diferentes tipos de compresión a la hora de escribir.
+* `dateFormat`, recibe un formato de fecha o `DateTimeFormatter`.
+* `multiLine`, si leemos un JSON en formato multilínea o no. Por defecto `false`. Esto en lectura.
+* `allowUnquotedFieldNames`, permite nombres de campo sin comillas. Por defecto `false`. Esto en lectura.
+
+#### CSV
+Un formato muy usado para texto plano. Cada línea tiene campos separados por comas que representan un registro. Pueden configurarse otros delimitadores.
+
+*Ver ejemplo 7: CSV*
+
+Este formato tiene aún más opciones. Además de las ofrecidas por el formato JSON, tenemos las siguientes:
+* `inferSchema`, para sacar los datos de columnas (por defecto falso), en lectura.
+* `sep`, `escape` y `header` determina el caracter separador, el de escape y si la primera línea es de cabecera con los nombres de columnas. Por defcto son `,`, `\`, y falso.
+
+#### Avro
+Avro es un formato usado por, entre otros, Apache Kafka para serializar y deserializar mensajes. Puede mapear directamente a JSON, es veloz y eficiente.
+
+*Ver ejemplo 8: Avro*
+
+También tiene opciones adicionales:
+* `avroSchema`, sin valor por defecto, acepta un schema en formato JSON. Fracasará si no reúne los requisitos (el nombre, los tipos, deben ser iguales que lo que se recibe por Avro o por Catalyst).
+* `recordName`, el nombre de alto nivel del registro, al escribir.
+* `recordNamespace`, el espacio de nombres del registro al escribir.
+* `ignoreExtension` (true por defecto). Se cargan todos los archivos o solo los que tengan la extensión `.avro`, al leer.
+
+#### ORC
+Lector vectorizado que lee bloques de filas en vez de una a la vez. En Hive debe especificarse el uso de ORC.
+
+*Ver ejemplo 9: ORC*
+
+#### Imágenes
+Para propósitos de *deep learning* y demás, los archivos de imágenes también se pueden leer.
+
+*Ver ejemplo 10: Imagen*
+
+#### Archivos binarios
+Por último, Spark 3.0 añadió soporte para archivos binarios como fuente de datos. Cada archivo binario se convierte en una fila de DataFrame que contiene el contenido y los metadatos del archivo. Se produce un DataFrame con las columnas `path: StringType, modificationTime: TimestampType, length: LongType, content: BinaryType`.
+
+*Ver ejemplo 11: Archivos binarios*
 
 ---
 ## Capítulo 5
 *SparkSQL y DataFrames: Interacción con Fuentes Externas de Datos*
+
+Ahora voy por aquí.
 
 ---
 ## Capítulo 6
