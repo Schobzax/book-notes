@@ -62,4 +62,5 @@
 
 | Ejercicios | Python | Scala |
 | ---------- | ------ | ----- |
-|  |  |  |
+| **UDFs: Pros y Cons** | [Este](chapter5/udf.md) |
+| **Empleados MySQL** | [Aqueste](chapter5/empleados.py) | [Aquotro](chapter5/empleados.scala)
