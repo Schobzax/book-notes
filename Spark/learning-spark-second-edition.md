@@ -714,7 +714,63 @@ Por último, Spark 3.0 añadió soporte para archivos binarios como fuente de da
 ## Capítulo 5
 *SparkSQL y DataFrames: Interacción con Fuentes Externas de Datos*
 
-Ahora voy por aquí.
+### UDF: User Defined Functions
+Pueden crearse funciones definidas por el usuario, con múltiples usos y accesibles mediante SparkSQL.
+
+*Ver ejemplo 1: UDF*
+
+Sin embargo, las UDF tienen ciertos problemas: **No garantizan el orden de evaluación de las subexpresiones, ni garantizan la comprobación de valores nulos (`null`)**.
+Hay dos maneras de hacer esto bien:
+1. Hacer que la propia UDF sea "null-aware" y que se compruebe si el valor es nulo *dentro* de la UDF.
+2. Usar IF o CASE WHEN al hacer la comprobación, e invocar a la UDF en una rama condicional que cumpla la no-nulidad de los datos, es decir, comprobarlo *fuera* de la UDF, antes de llamarla.
+
+Y esto se extiende a otras comprobaciones que deban realizarse para garantizar según qué cosas en la función (ver un poco más arriba).
+
+#### Pandas vs PySpark
+Las UDF en PySpark tienen el problema de que son más lentas que las UDF de Scala porque tienen que traducir entre JVM y Python, lo cual baja mucho el rendimiento. Unasolución es usar UDF en Panda (también conocidas como UDF vectorizadas). Usan APache Arrow para transferir los datos y Pandas para trabajar con los mismos. Estas funciones se definen con la palabra `pandas_udf`.
+
+Esto ahora está dividido en dos:
+* *Pandas UDF*: Infieren el tipo UDF Pandas desde Python.
+* *Pandas Function APIs*: Permiten aplicar directamente una función Python en un DF de PySpark con la entrada y la salida siendo instancias de Pandas.
+
+En el siguiente ejemplo se verá cómo crear una UDF en Pandas y su consiguiente visualización.
+
+*Ver Ejemplo 2*
+
+### Consultas mediante herramientas externas: Shell, Beeline, Tableau, bases de datos relacionales
+
+Mucho texto.
+
+### Funciones de alto nivel
+Muy útiles para tipos de datos complejos y demás. Tenemos dos opciones: **Explode and Collect** o una UDF.
+
+#### **Explode and Collect**
+* `explode(values)` crea una nueva fila por cada elemento.
+* `collect_list()` hace exactamente lo opuesto.
+
+La utilidad de esto es separar los elementos, aplicarles una función y volverlos a juntar. Sirven para pensar en el problema en un formato tabular, al separar los elementos en Rows.
+
+#### **UDF**
+Podemos crear una UDF que use `map()` para realizar la misma tarea iterando por los elementos y ejecutando la operación designada.
+
+Tiene ventajas en cuanto a problemas de shuffling, pero el proceso de serialización y deserialización disminuye mucho el rendimiento. Es mejor que `collect_list()` en términos de memoria.
+
+#### **Funciones *Built-in***
+La mayoría de funciones son de agregación o de operaciones de conjuntos pero para arrays: `array_distinct, array_intersect, array_union, array_except, array_join, array_max, array_min`, etc. La lista es larga pero mi paciencia no. Estas operaciones pueden consultarse en el cuaderno correspondiente de la documentación de Databricks.
+
+#### Funciones de mayor nivel
+Con una expresión lambda como parámetro, son:
+* `transform()` (produce un array de salida aplicando una función a cada elemento del array de entrada. Un poco como `map()`)
+* `filter()` produce un array con los elementos para los cuales la condición pasada es verdadera.
+* `exists()` devuelve `true` si algún elemento del array de entrada cumple la condición.
+* `reduce()` reduce los elementos del aray a un único valor juntando los elementos en un Buffer. De este no me he enterado muy bien, pero supongo que funciona como el reduce típico del Map-Reduce.
+
+### Funciones comunes
+Agregación, fecha, matemáticas, ordenación, cadena, ventana, UDF, etcétera. Para más información, consultar la documentación.
+
+Como muestra de algunas de estas operaciones, el siguiente ejemplo.
+
+*Ver ejemplo 3*
 
 ---
 ## Capítulo 6

@@ -47,3 +47,19 @@
 | ---------- | ------ | ----- |
 | **GlobalTempView vs TempView** | [Explicación](chapter4/global.md) |
 | **Leer archivos cap3** | [Uno](chapter4/lectura.py) | [Dos](chapter4/lectura.scala) |
+
+## Capítulo 5
+
+| Ejemplos      | Python | Scala |
+| ------------- | ------ | ----- |
+| **Ejemplo 1** | [Aquí](chapter5/ejemplo1.py) | [Allí](chapter5/ejemplo1.scala) |
+| **Ejemplo 2** | [Aquí](chapter5/ejemplo2.py) | Temas de Pandas así que no |
+| **Ejemplo 3** | [Aquí](chapter5/ejemplo3.py) | [Allí](chapter5/ejemplo3.scala) |
+| **Ejemplo 4** | [Aquí](chapter5/ejemplo4.py) | [Allí](chapter5/ejemplo4.scala) |
+| **Ejemplo 5** | [Aquí](chapter5/ejemplo5.py) | [Allí](chapter5/ejemplo5.scala) |
+| **Ejemplo 6** | [Aquí](chapter5/ejemplo6.py) | [Allí](chapter5/ejemplo6.scala) |
+| **Ejemplo 7** | [Aquí](chapter5/ejemplo7.py) | [Allí](chapter5/ejemplo7.scala) |
+
+| Ejercicios | Python | Scala |
+| ---------- | ------ | ----- |
+|  |  |  |
