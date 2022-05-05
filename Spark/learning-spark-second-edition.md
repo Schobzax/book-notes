@@ -775,3 +775,48 @@ Como muestra de algunas de estas operaciones, el siguiente ejemplo.
 ---
 ## Capítulo 6
 *SparkSQL y Datasets*
+
+Nota: En este capítulo hay ejemplos disponibles en Scala y en Java, pero dado que nuestro enfoque es mayoritariamente en Scala y Python, solo se mostrarán los ejemplos en Scala. Además, es más conciso.
+
+La API de **DataSets** ofrece una manera unificada de trabajar con objetos fuertemente tipados (disponible únicamente en Scala y Java).
+
+Lo primero que debemos hacer antes de trabajar con DataSets es crear el tipo del DataSet: una `case class`.
+
+*Ver Ejemplo 1*
+
+Esto nos hace pensar por adelantado el *schema* que va a tener el DataSet, por así decirlo. En esta API el schema no puede inferirse.
+
+En el siguiente ejemplo se ve cómo se trabajará con datos generados aleatoriamente, desde la creación a operaciones de transformación y otras.
+
+*Ver Ejemplo 1 parte 2*
+
+Algunas consideraciones:
+* Usamos objetos JVM como argumentos de funciones.
+* Usamos notación de puntos para acceder a campos individuales dentro del objeto JVM.
+* Algunas de nuestras funciones pueden ser tipadas también, para mejor detección de errores en compilación.
+* Nuestro código es legible.
+* Spark provee `map()` y `filter()` sin constructos funcionales para no estar obligado a usar programación funcional; puedes usar operadores condicionales DSL o expresiones SQL.
+* Para los DataSets usamos Encoders, mecanismos que convierten datos entre JVM y los tipos internos de Spark de manera fácil. Lo veremos a continuación.
+
+#### Pequeño apunte: Conversión de DataFrame a DataSet
+* Mediante el comando `<df>.as[<caseClass>]`, siendo `df` el DataFrame a convertir, y `caseClass` la clase de DataSet a la que se quiere convertir.
+
+### Encoders
+Los encoders tranforman los datos del modelo interno (*Tungsten*) a objetos JVM. Consiste en serialización y deserialización. Sin embargo, el encoders internos son mucho más eficientes.
+
+* Entre otras cosas, eliminan las grandes cabeceras de los objetos Java (hashing, unicode, etcétera).
+* Para convertir los datos de su representación en memoria aobjeto JVM, no crea objetos JVM sino que asigna memoria fuera de la pila. Estos datos se almacenan de manera contigua y accesible mediante aritmética de punteros, para una rápida serialización y deserialización.
+* JVM tiene su propio mecanismo de serialización, pero este no es eficiente por la cantidad de relleno que le meten a los objetos Java. Mientras tanto, los encoders de Dataset son más eficientes por diversos motivos que ya hemos explicado.
+
+### Eficiencia y memoria
+Spark es intensivo en el uso de memoria, así que es crucial un uso eficiente de la misma. A lo largo de las versiones se han ido añadiendo funcionalidades para un mejor uso de la memoria, pero además, el propio usuario puede hacer uso de diversas técnicas para mejorar la eficiencia.
+
+Por otro lado, los DataSets se transfieren a funciones de alto nivel con un coste asociado de deserialización Tungsten -> JVM. Algunas estrategias de mitigación de costes son las siguientes:
+
+* Usar expresiones DSL evitando excesivo uso de funciones lambda anónimas (opacas para el Catalyst Optimizer; "Spark no sabe qué quieres que haga" y por lo tanto no puede optimizarlas).
+  
+* Encadenar consultas de tal manera que se minimize la serialización: cada vez que vas de lambda a DSL existe un coste de serialización.
+  * Manera ineficiente: `personDS.filter(x => x.birthDate.split("-")(0).toInt -> earliestYear).filter($"salary" > 80000).filter(x => x.lastName.startsWith("J")).filter($"firstName".startsWith("D")).count()`
+  * Manera eficiente: `personDS.filter(year($"birthDate") > earliestYear).filter($"salary" > 80000).filter($"lastName".startsWith("J").filter($"firstName".startsWith("D")).count()`
+
+¿Es esta segunda estrategia realmente la primera estrategia porque no hemos cambiado el orden sino más bien evitado el uso de funciones lambda cambiándolas por DSL y por lo tanto el segundo punto carece de real demonstración o validez? Eso ya cada uno saca sus propias conclusiones.

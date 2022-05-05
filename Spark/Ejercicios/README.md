@@ -64,3 +64,11 @@
 | ---------- | ------ | ----- |
 | **UDFs: Pros y Cons** | [Este](chapter5/udf.md) |
 | **Empleados MySQL** | [Aqueste](chapter5/empleados.py) | [Aquotro](chapter5/empleados.scala)
+
+## Capítulo 6
+| Ejemplos      | Scala |
+| ------------- | ----- |
+| **Ejemplo 1** | [i](chapter6/ejemplo1.scala) |
+| **Ejemplo 2** | [ii](chapter6/ejemplo2.scala) |
+| **Ejemplo 3** | [iii](chapter6/ejemplo3.scala) |
+| **Ejemplo 4** | [iiii](chapter6/ejemplo4.scala) |
